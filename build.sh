@@ -50,7 +50,7 @@ cd love-0.10.2-win32
 
 cat love.exe "${PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
 zip -q "build.zip" * -x "love.exe"
-mv "build.zip" "../build/${PACKAGE_NAME}_love_x86.zip"
+mv "build.zip" "../build/${PACKAGE_NAME}_win_x86.zip"
 rm "${GAME_NAME}.exe"
 cd ..
 
@@ -58,7 +58,7 @@ echo "Building $GAME_NAME for win64..."
 cd love-0.10.2-win64
 cat love.exe "${PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
 zip -q "build.zip" * -x "love.exe"
-mv "build.zip" "../build/${PACKAGE_NAME}_love_x64.zip"
+mv "build.zip" "../build/${PACKAGE_NAME}_win_x64.zip"
 rm "${GAME_NAME}.exe"
 cd ..
 
