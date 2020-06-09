@@ -33,8 +33,8 @@ if [ "$FILE_EXTENSION" != "love" ]; then
 	exit 1
 fi
 
-if [[ "$FILE_NAME" == "$FILE_PATH" || "$FILE_PATH" == ./* ]]; then
-	echo "File is in the current directory."
+if [[ "$FILE_PATH" != /* ]]; then
+	echo "File path relative."
 
 	PREFIX="../"
 fi
