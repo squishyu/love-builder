@@ -23,9 +23,15 @@ if ! test -d "./love-0.10.2-win64"; then
 fi
 
 FILE_NAME=$(basename "$FILE_PATH")
+FILE_EXTENSION=${FILE_NAME##*.}
 GAME_NAME=$(basename -s .love "$FILE_PATH")
 LOWERCASE=$(echo "$GAME_NAME" | tr '[:upper:]' '[:lower:]')
 PACKAGE_NAME=${LOWERCASE// /_}
+
+if [ "$FILE_EXTENSION" != "love" ]; then
+	echo "Supplied file isn't a .love file."
+	exit 1
+fi
 
 echo "Enabling extended globs..."
 shopt -s extglob
