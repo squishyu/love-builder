@@ -29,8 +29,14 @@ LOWERCASE=$(echo "$GAME_NAME" | tr '[:upper:]' '[:lower:]')
 PACKAGE_NAME=${LOWERCASE// /_}
 
 if [ "$FILE_EXTENSION" != "love" ]; then
-	echo "Supplied file isn't a .love file."
+	echo "[$FILE_PATH] - Supplied file isn't a .love file."
 	exit 1
+fi
+
+if [[ "$FILE_NAME" == "$FILE_PATH" || "$FILE_PATH" == ./* ]]; then
+	echo "File is in the current directory."
+
+	PREFIX="../"
 fi
 
 echo "Enabling extended globs..."
@@ -41,7 +47,8 @@ mkdir -p ./build
 
 echo "Building $GAME_NAME for win32..."
 cd love-0.10.2-win32
-cat love.exe "$FILE_PATH" > "${GAME_NAME}.exe"
+
+cat love.exe "${PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
 zip -q "build.zip" * -x "love.exe"
 mv "build.zip" "../build/${PACKAGE_NAME}_love_x86.zip"
 rm "${GAME_NAME}.exe"
@@ -49,7 +56,7 @@ cd ..
 
 echo "Building $GAME_NAME for win64..."
 cd love-0.10.2-win64
-cat love.exe "$FILE_PATH" > "${GAME_NAME}.exe"
+cat love.exe "${PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
 zip -q "build.zip" * -x "love.exe"
 mv "build.zip" "../build/${PACKAGE_NAME}_love_x64.zip"
 rm "${GAME_NAME}.exe"
