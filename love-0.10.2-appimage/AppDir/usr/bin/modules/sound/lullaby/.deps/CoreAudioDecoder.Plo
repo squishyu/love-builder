@@ -1,0 +1,4 @@
+modules/sound/lullaby/CoreAudioDecoder.lo: \
+ modules/sound/lullaby/CoreAudioDecoder.cpp /usr/include/stdc-predef.h
+
+/usr/include/stdc-predef.h:

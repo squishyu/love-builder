@@ -1,0 +1,10 @@
+#!/bin/bash
+
+LOVE_TYPE=$(type love)
+SPLIT_TYPE=(${LOVE_TYPE//\ / })
+LOVE_PATH=${SPLIT_TYPE[(${#SPLIT_TYPE[@]}-1)]}
+BIN_PATH=$(dirname "$LOVE_PATH")
+FILE_NAME=${1//\"/}
+
+cd $BIN_PATH
+./love "./${FILE_NAME}"

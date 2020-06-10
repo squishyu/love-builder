@@ -1,0 +1,8 @@
+modules/sound/lullaby/GmeDecoder.lo: modules/sound/lullaby/GmeDecoder.cpp \
+ /usr/include/stdc-predef.h common/config.h ../config.h
+
+/usr/include/stdc-predef.h:
+
+common/config.h:
+
+../config.h:

@@ -1,0 +1,10 @@
+common/b64.lo: common/b64.cpp /usr/include/stdc-predef.h common/b64.h \
+ common/config.h ../config.h
+
+/usr/include/stdc-predef.h:
+
+common/b64.h:
+
+common/config.h:
+
+../config.h:

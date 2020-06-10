@@ -1,0 +1,7 @@
+libraries/noise1234/simplexnoise1234.lo: \
+ libraries/noise1234/simplexnoise1234.cpp /usr/include/stdc-predef.h \
+ libraries/noise1234/simplexnoise1234.h
+
+/usr/include/stdc-predef.h:
+
+libraries/noise1234/simplexnoise1234.h:

@@ -1,0 +1,10 @@
+common/utf8.lo: common/utf8.cpp /usr/include/stdc-predef.h common/utf8.h \
+ common/config.h ../config.h
+
+/usr/include/stdc-predef.h:
+
+common/utf8.h:
+
+common/config.h:
+
+../config.h:
