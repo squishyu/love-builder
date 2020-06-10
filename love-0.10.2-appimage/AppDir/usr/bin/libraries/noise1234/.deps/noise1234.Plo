@@ -1,6 +1,0 @@
-libraries/noise1234/noise1234.lo: libraries/noise1234/noise1234.cpp \
- /usr/include/stdc-predef.h libraries/noise1234/noise1234.h
-
-/usr/include/stdc-predef.h:
-
-libraries/noise1234/noise1234.h:
