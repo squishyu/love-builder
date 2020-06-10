@@ -1,7 +1,7 @@
 # Love Builder
-### Love2D packaging script for Windows x64/x86
+### Love2D packaging script
 
-This script generates zip files containing your packaged game for 32 and 64 bit Windows.
+This script generates zip files containing your packaged game for Windows and Linux.
 Currently the script only works with Love2D 0.10.2 which comes included.
 
 ## Usage
@@ -22,11 +22,24 @@ chmod +x build.sh
 
 Archives get put into a build folder.
 
+## Notes
+
+You can supply your own **_appimagetool_** and **_AppRun_** file.
+
+**_appimagetool_** needs be placed in a directory named `appimagetool` or
+be installed and accessible from PATH.
+The **_AppRun_** file needs to be placed at the root of the repository.
+
+If any of these files are missing, they get downloaded from the _AppImageKit_
+repository.
+
 ## TODO
 
-- Add Linux support (Maybe even MacOS)
+- ~~Add Linux support~~ (Maybe even MacOS)
 - Allow for different versions of Love2D
 
 ## Links
 
 Love2D: [https://love2d.org](https://love2d.org)
+
+AppImageKit: [https://github.com/AppImage/AppImageKit](https://github.com/AppImage/AppImageKit)
