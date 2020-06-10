@@ -223,7 +223,7 @@ build_linux() {
 		for f in *.AppImage; do
 			[ -f "$f" ] || break
 
-			NO_EXTENSION=$(basename "$f")
+			NO_EXTENSION=$(basename -s .AppImage "$f")
 			LOWERCASE=$(echo "$NO_EXTENSION" | tr '[:upper:]' '[:lower:]')
 			FILE_NAME="${LOWERCASE//-/_}.AppImage"
 
