@@ -12,12 +12,12 @@ if ! test -f "$FILE_PATH"; then
 	exit 1
 fi
 
-if ! test -d "./love-0.10.2-win32"; then
+if ! test -d "./love-win32"; then
 	echo "Missing love folder at [./love-0.10.2-win32]"
 	exit 1
 fi
 
-if ! test -d "./love-0.10.2-win64"; then
+if ! test -d "./love-win64"; then
 	echo "Missing love folder at [./love-0.10.2-win64]"
 	exit 1
 fi
@@ -114,8 +114,8 @@ shopt -s extglob
 
 add_apprun() {
 	echo "Adding AppRun..."
-	cp ../AppRun AppDir
-	chmod +x AppDir/AppRun
+	cp ../AppRun .
+	chmod +x AppRun
 }
 
 build_windows() {
@@ -128,7 +128,7 @@ build_windows() {
 	fi
 
 	echo -e "${PURPLE}Building $GAME_NAME for win${ARCH_BITS}...${NC}"
-	cd "love-0.10.2-win${ARCH_BITS}"
+	cd "love-win${ARCH_BITS}"
 
 	echo "Creating executable..."	
 	cat love.exe "${PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
@@ -144,7 +144,7 @@ build_windows() {
 
 build_linux() {
 	echo -e "${PURPLE}Building $GAME_NAME for Linux (AppImage)...${NC}"
-	cd love-0.10.2-appimage
+	cd AppDir
 
 	echo "Creating .desktop file..."
 	DESKTOP=$(cat <<-END
@@ -158,13 +158,13 @@ build_linux() {
 	Categories=Game;
 	END
 	)
-	echo "$DESKTOP" >> "AppDir/${GAME_NAME}.desktop"
+	echo "$DESKTOP" >> "${GAME_NAME}.desktop"
 
 	echo "Adding icon..."
-	cp ../love.png AppDir
+	cp ../love.png .
 
 	echo "Adding .love file..."
-	cp "${PREFIX}$FILE_PATH" AppDir/usr/bin
+	cp "${PREFIX}$FILE_PATH" usr/bin
 
 	echo "Checking for AppRun..."
 	APPRUN_ADDRESS="https://github.com/AppImage/AppImageKit/releases/download/12/AppRun-x86_64"
@@ -196,7 +196,7 @@ build_linux() {
 		    	chmod +x ../appimagetool/appimagetool-x86_64.AppImage
 
 		    	echo "Creating AppImage package..."
-		    	../appimagetool/appimagetool-x86_64.AppImage AppDir &> /dev/null
+		    	../appimagetool/appimagetool-x86_64.AppImage . &> /dev/null
 		    else
 		    	echo -e "${RED}Missing appimagetool.${NC}"
 		    	echo -e "${RED}AppImage build failed.${NC}"
@@ -204,7 +204,7 @@ build_linux() {
 		else
 			if test -f ../appimagetool/*.AppImage; then
 				echo "Creating AppImage package..."
-				../appimagetool/*.AppImage AppDir &> /dev/null
+				../appimagetool/*.AppImage . &> /dev/null
 			else
 				echo -e "${RED}Missing appimagetool. Removing empty folder...${NC}"
 				rm -r ../appimagetool
@@ -214,7 +214,7 @@ build_linux() {
 		fi
 	else
 		echo "Creating AppImage package..."
-		appimagetool AppDir &> /dev/null
+		appimagetool . &> /dev/null
 	fi
 
 	if test -f *.AppImage; then
@@ -234,11 +234,10 @@ build_linux() {
 	fi
 
 	echo "Cleaning..."
-	cd AppDir
 	rm -f !("usr")
 	rm -f ".DirIcon"
 	rm -f usr/bin/*.love
-	cd ../..
+	cd ..
 }
 
 echo "Creating build folder..."
