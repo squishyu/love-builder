@@ -39,7 +39,7 @@ repository.
 ## TODO
 
 - ~~Add Linux support~~ (Maybe even MacOS)
-- Allow for different versions of Love2D
+- ~~Allow for different versions of Love2D~~
 
 ## Links
 
