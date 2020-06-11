@@ -2,7 +2,10 @@
 ### Love2D packaging script
 
 This script generates zip files containing your packaged game for Windows and Linux.
-Currently the script only works with Love2D 0.10.2 which comes included.
+Currently the script comes included with Love2D 0.10.2, however you can supply your own Love versions.
+
+For Windows, you can get the binaries from the Love2D website (Link at the bottom).
+For Linux, check out the [wiki](https://love2d.org/wiki/Game_Distribution)
 
 ## Usage
 
