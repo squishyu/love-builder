@@ -1,4 +1,4 @@
-./build
-./appimagetool
+./build/
+./appimagetool/
 ./AppRun_old
 ./AppRun
