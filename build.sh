@@ -1,44 +1,73 @@
 #!/bin/bash
 
 if [[ $# -lt 1 ]]; then
-	echo "Usage: $0 <path_to_love_file>"
+	echo "Usage: $0 <path_to_love_file> [path_to_icon_file]"
 	exit 0
 fi
 
 FILE_PATH="$1"
+ICON_PATH="$2"
 
 if ! test -f "$FILE_PATH"; then
-	echo "[$FILE_PATH] - File not found"
+	echo "[${FILE_PATH}] - File not found"
 	exit 1
 fi
 
 if ! test -d "./love-win32"; then
-	echo "Missing love folder at [./love-0.10.2-win32]"
+	echo "Missing love folder at [./love-win32]"
 	exit 1
 fi
 
 if ! test -d "./love-win64"; then
-	echo "Missing love folder at [./love-0.10.2-win64]"
+	echo "Missing love folder at [./love-win64]"
 	exit 1
 fi
 
-# File
+if ! test -d "./AppDir"; then
+	echo "Missing AppDir structure"
+	exit 1
+fi
 
-FILE_NAME=$(basename "$FILE_PATH")
-FILE_EXTENSION=${FILE_NAME##*.}
-GAME_NAME=$(basename -s .love "$FILE_PATH")
+# Icon file
+
+ICON_FILE_NAME=$(basename "$ICON_PATH")
+ICON_FILE_EXTENSION=${ICON_FILE_NAME##*.}
+ICON_FILE_NO_EXTENSION=$(basename -s ".$ICON_FILE_EXTENSION" "$ICON_PATH")
+
+if test -f "$ICON_PATH"; then
+	if [[ "$ICON_FILE_EXTENSION" != "png" ]]; then
+		echo "[${ICON_PATH}] - Please supply the icon as a .png"
+		exit 1
+	fi
+
+	if [[ "$ICON_PATH" != /* ]]; then
+		echo "Icon file path relative."
+
+		ICON_PREFIX="../"
+	fi
+
+	ICON_FILE_SUPPLIED=1
+elif ! [ -z $ICON_PATH ]; then
+	echo "[${ICON_PATH}] - File not found"
+fi
+
+# Love file
+
+LOVE_FILE_NAME=$(basename "$FILE_PATH")
+LOVE_FILE_EXTENSION=${LOVE_FILE_NAME##*.}
+GAME_NAME=$(basename -s ".$LOVE_FILE_EXTENSION" "$FILE_PATH")
 LOWERCASE=$(echo "$GAME_NAME" | tr '[:upper:]' '[:lower:]')
 PACKAGE_NAME=${LOWERCASE// /_}
 
-if [ "$FILE_EXTENSION" != "love" ]; then
-	echo "[$FILE_PATH] - Supplied file isn't a .love file."
+if [ "$LOVE_FILE_EXTENSION" != "love" ]; then
+	echo "[${FILE_PATH}] - Supplied file isn't a .love file."
 	exit 1
 fi
 
 if [[ "$FILE_PATH" != /* ]]; then
-	echo "File path relative."
+	echo "Love file path relative."
 
-	PREFIX="../"
+	LOVE_PREFIX="../"
 fi
 
 # Colors
@@ -112,6 +141,107 @@ BUILDS_ALL=3
 echo "Enabling extended globs..."
 shopt -s extglob
 
+wine_check() {
+	echo -e "Checking for ${RED}Wine${NC}..."
+
+	if command -v wine > /dev/null; then
+		if [[ "$WINEARCH" != "win32" ]]; then
+			echo -e "${ORANGE}If you receive errors while changing .exe icons, please remove ${NC}~/.wine ${ORANGE}folder and try again."
+		fi
+
+		WINE_COMMAND="wine"
+		export WINEARCH=win32
+	elif command -v wine32 > /dev/null; then
+		WINE_COMMAND="wine32"
+	fi
+
+	if [ -z ${WINE_COMMAND} ]; then
+		echo -e "${ORANGE}Please install ${RED}Wine ${ORANGE}if you want to add game icons to your Windows executables.${NC}"
+	else
+		echo -e "${GREEN}Wine installed.${NC}"
+	fi
+}
+
+resource_hacker_check() {
+	RH_ADDRESS="http://www.angusj.com/resourcehacker/resource_hacker.zip"
+	RH_DOWNLOAD_PATH="resource_hacker"
+
+	echo "Checking for Resource Hacker..."
+
+	if [ -z ${WINE_COMMAND} ]; then
+		echo "No Wine, skipping..."
+	else
+		if test -d resource_hacker; then
+			if test -f resource_hacker/ResourceHacker.exe; then
+				echo -e "${GREEN}Resource Hacker found.${NC}"
+				RH_FOUND=1
+			else
+				echo -e "${ORANGE}Invalid resource_hacker folder, please remove it and re-run script to fix this.${NC}"
+			fi
+		else
+			echo -e "${ORANGE}Resource Hacker missing.${NC}"
+			download "$RH_ADDRESS" "$RH_DOWNLOAD_PATH"
+
+			if [[ "$SUCCESS" == 1 ]]; then
+				echo "Extracting Resource Hacker..."
+				cd resource_hacker
+				unzip -qq resource_hacker.zip
+				rm -f resource_hacker.zip
+				cd ..
+
+				echo -e "${GREEN}Resource Hacker found.${NC}"
+				RH_FOUND=1
+			else
+				echo -e "${ORANGE}Oh well... :c${NC}"
+			fi
+		fi
+	fi
+}
+
+magick_check() {
+	IM_ADDRESS="https://imagemagick.org/download/binaries/magick"
+	IM_DOWNLOAD_PATH="magick"
+
+	echo "Checking for ImageMagick..."
+
+	if test -d magick; then
+		if test -f magick/magick; then
+			echo -e "${GREEN}ImageMagick found.${NC}"
+			IM_FOUND=1
+		else
+			echo -e "${ORANGE}Invalid magick folder, please remove it and re-run the script to fix this.${NC}"
+		fi
+	else
+		echo -e "${ORANGE}ImageMagick missing.${NC}"
+		download "$IM_ADDRESS" "$IM_DOWNLOAD_PATH"
+
+		if [[ "$SUCCESS" == 1 ]]; then
+			chmod +x magick/magick
+
+			echo -e "${GREEN}ImageMagick found.${NC}"
+			IM_FOUND=1
+		else
+			echo -e "${ORANGE}ono${NC}"
+		fi
+	fi
+}
+
+change_icon() {
+	if [[ "$ICON_FILE_SUPPLIED" == 1 ]] && [[ "$RH_FOUND" == 1 ]] && [[ "$IM_FOUND" == 1 ]]; then
+		echo "Converting icon from .png to .ico..."
+		cp "${ICON_PREFIX}${ICON_PATH}" .
+		../magick/magick convert -resize x16 -gravity center -crop 16x16+0+0 "${ICON_FILE_NAME}" -flatten -colors 256 -background transparent "${ICON_FILE_NO_EXTENSION}.ico"
+
+		echo "Changing .exe icon..."
+
+		"$WINE_COMMAND" ../resource_hacker/ResourceHacker.exe -open "${GAME_NAME}.exe" -save "${GAME_NAME}.exe" -action addskip -res "${ICON_FILE_NO_EXTENSION}.ico" -mask ICONGROUP, MAINICON, 0
+
+		rm -f "${ICON_FILE_NAME}"
+		rm -f "${ICON_FILE_NO_EXTENSION}.ico"
+		echo -e "${GREEN}Changed executable icon.${NC}"
+	fi
+}
+
 add_apprun() {
 	echo "Adding AppRun..."
 	cp ../AppRun .
@@ -131,7 +261,10 @@ build_windows() {
 	cd "love-win${ARCH_BITS}"
 
 	echo "Creating executable..."	
-	cat love.exe "${PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
+	cat love.exe "${LOVE_PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
+
+	change_icon
+
 	echo "Compressing..."
 	zip -q "build.zip" * -x "love.exe"
 	echo -e "${GREEN}Moving package to build folder...${NC}"
@@ -146,11 +279,22 @@ build_linux() {
 	echo -e "${PURPLE}Building $GAME_NAME for Linux (AppImage)...${NC}"
 	cd AppDir
 
+	echo "Adding icon..."
+	if [[ "$ICON_FILE_SUPPLIED" == 1 ]]; then
+		cp "${ICON_PREFIX}${ICON_PATH}" .
+		cp "${ICON_PREFIX}${ICON_PATH}" usr/share/icons/hicolor/256x256
+		ICON_NAME="$ICON_FILE_NO_EXTENSION"
+	else
+		cp ../love.png .
+		cp ../love.png usr/share/icons/hicolor/256x256
+		ICON_NAME="love"
+	fi
+
 	echo "Creating .desktop file..."
 	DESKTOP=$(cat <<-END
 	[Desktop Entry]
-	Exec=run_game "$FILE_NAME"
-	Icon=love
+	Exec=run_game "$LOVE_FILE_NAME"
+	Icon=$ICON_NAME
 	Name=$GAME_NAME
 	Terminal=false
 	Type=Application
@@ -160,11 +304,8 @@ build_linux() {
 	)
 	echo "$DESKTOP" >> "${GAME_NAME}.desktop"
 
-	echo "Adding icon..."
-	cp ../love.png .
-
 	echo "Adding .love file..."
-	cp "${PREFIX}$FILE_PATH" usr/bin
+	cp "${LOVE_PREFIX}$FILE_PATH" usr/bin
 
 	echo "Checking for AppRun..."
 	APPRUN_ADDRESS="https://github.com/AppImage/AppImageKit/releases/download/12/AppRun-x86_64"
@@ -187,7 +328,7 @@ build_linux() {
 	AIT_ADDRESS="https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage"
 	AIT_DOWNLOAD_PATH="../appimagetool"
 
-	if ! command -v appimagefool > /dev/null; then
+	if ! command -v appimagetool > /dev/null; then
 		if ! test -d ../appimagetool; then		
 		    download "$AIT_ADDRESS" "$AIT_DOWNLOAD_PATH"
 
@@ -237,8 +378,17 @@ build_linux() {
 	rm -f !("usr")
 	rm -f ".DirIcon"
 	rm -f usr/bin/*.love
+	rm -f usr/share/icons/hicolor/256x256/*
 	cd ..
 }
+
+echo "Love Builder needs ImageMagick, Wine and ResourceHacker to be able to change icons of .exe files."
+echo "If you know of a better way to go about this, feel free to file an issue at"
+echo -e "${BLUE}[https://github.com/squishyu/love-builder]${NC}"
+
+wine_check
+resource_hacker_check
+magick_check
 
 echo "Creating build folder..."
 mkdir -p ./build
@@ -258,8 +408,3 @@ else
 	echo -e "${RED}All builds failed. [${BUILDS}/${BUILDS_ALL}]${NC}"
 	exit 1
 fi
-
-#echo "file path: $FILE_PATH"
-#echo "file name: $FILE_NAME"
-#echo "game name: $GAME_NAME"
-#echo "package name: $PACKAGE_NAME"

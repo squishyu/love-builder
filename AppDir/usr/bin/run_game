@@ -1,10 +1,15 @@
 #!/bin/bash
 
-LOVE_TYPE=$(type love)
-SPLIT_TYPE=(${LOVE_TYPE//\ / })
-LOVE_PATH=${SPLIT_TYPE[(${#SPLIT_TYPE[@]}-1)]}
-BIN_PATH=$(dirname "$LOVE_PATH")
+#LOVE_TYPE=$(type love)
+#SPLIT_TYPE=(${LOVE_TYPE//\ / })
+#LOVE_PATH=${SPLIT_TYPE[(${#SPLIT_TYPE[@]}-1)]}
+#BIN_PATH=$(dirname "$LOVE_PATH")
 FILE_NAME=${1//\"/}
+
+# Get current directory - from https://stackoverflow.com/a/630387
+
+BIN_PATH="`dirname \"$0\"`"
+BIN_PATH="`( cd \"$BIN_PATH\" && pwd )`"
 
 cd $BIN_PATH
 ./love "./${FILE_NAME}"
