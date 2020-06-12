@@ -230,7 +230,7 @@ change_icon() {
 	if [[ "$ICON_FILE_SUPPLIED" == 1 ]] && [[ "$RH_FOUND" == 1 ]] && [[ "$IM_FOUND" == 1 ]]; then
 		echo "Converting icon from .png to .ico..."
 		cp "${ICON_PREFIX}${ICON_PATH}" .
-		../magick/magick convert -resize x16 -gravity center -crop 16x16+0+0 "${ICON_FILE_NAME}" -flatten -colors 256 -background transparent "${ICON_FILE_NO_EXTENSION}.ico"
+		../magick/magick convert "${ICON_FILE_NAME}" -resize 256x256 -colors 256 -background transparent "${ICON_FILE_NO_EXTENSION}.ico"
 
 		echo "Changing .exe icon..."
 
