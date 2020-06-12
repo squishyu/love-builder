@@ -28,6 +28,11 @@ if ! test -d "./AppDir"; then
 	exit 1
 fi
 
+if ! test -d "./love.app"; then
+	echo "Missing love folder at [./love.app]"
+	exit 1
+fi
+
 # Icon file
 
 ICON_FILE_NAME=$(basename "$ICON_PATH")
