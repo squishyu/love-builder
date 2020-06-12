@@ -20,6 +20,10 @@ chmod +x build.sh
 ```
 ./build.sh <path_to_love_file>
 ```
+or
+```
+./build.sh <path_to_love_file> [path_to_icon]
+```
 
 #### Enjoy
 
@@ -36,6 +40,12 @@ The **_AppRun_** file needs to be placed at the root of the repository.
 If any of these files are missing, they get downloaded from the _AppImageKit_
 repository.
 
+#### Icons
+
+Sure was a pain. To change icons of a *.exe* a Windows program called *Resource Hacker* is needed, which requires *Wine* to run on Linux. Before the icon can be changed, *ImageMagick* needs to convert the *.png* you supplied to a *.ico* file.
+
+My tool does all of that, just make sure you have **_Wine_** installed.
+
 ## TODO
 
 - ~~Add Linux support~~ (Maybe even MacOS)
@@ -46,3 +56,9 @@ repository.
 Love2D: [https://love2d.org](https://love2d.org)
 
 AppImageKit: [https://github.com/AppImage/AppImageKit](https://github.com/AppImage/AppImageKit)
+
+Resource Hacher: [http://www.angusj.com/resourcehacker](http://www.angusj.com/resourcehacker)
+
+ImageMagick: [https://imagemagick.org/index.php](https://imagemagick.org/index.php)
+
+Wine: [https://www.winehq.org](https://www.winehq.org/)
