@@ -136,7 +136,7 @@ download() {
 # Building
 
 BUILDS=0
-BUILDS_ALL=3
+BUILDS_ALL=0
 
 echo "Enabling extended globs..."
 shopt -s extglob
@@ -248,7 +248,17 @@ add_apprun() {
 	chmod +x AppRun
 }
 
+replace_text_in_file() {
+	INPUT="$1"
+	OUTPUT="$2"
+	IN_FILE="$3"
+
+	sed -i -e "s+${INPUT}+${OUTPUT}+g" "$IN_FILE"
+}
+
 build_windows() {
+	((BUILDS_ALL++))
+
 	ARCH="$1"
 
 	if [[ "$ARCH" == "x86" ]]; then
@@ -276,6 +286,8 @@ build_windows() {
 }
 
 build_linux() {
+	((BUILDS_ALL++))
+
 	echo -e "${PURPLE}Building $GAME_NAME for Linux (AppImage)...${NC}"
 	cd AppDir
 
@@ -382,7 +394,65 @@ build_linux() {
 	cd ..
 }
 
-echo "Love Builder needs ImageMagick, Wine and ResourceHacker to be able to change icons of .exe files."
+build_macos() {
+	((BUILDS_ALL++))
+
+	echo -e "${PURPLE}Building $GAME_NAME for MacOS...${NC}"
+
+	echo "Creating temporary folder..."
+	mkdir macos_temp
+	cp -a love.app "macos_temp/${PACKAGE_NAME}.app"
+	cd macos_temp
+
+	echo "Adding .love file..."
+	cp "${LOVE_PREFIX}$FILE_PATH" "${PACKAGE_NAME}.app/Contents/Resources"
+
+	echo "Adding icon..."
+	cp "${ICON_PREFIX}${ICON_PATH}" "${PACKAGE_NAME}.app/Contents/Resources"
+
+	cd "${PACKAGE_NAME}.app"
+
+	if [[ "$ICON_FILE_SUPPLIED" == 1 ]]; then
+		if [[ "$IM_FOUND" == 1 ]]; then
+			echo "Converting icon from .png to .icns..."
+			cd Contents/Resources
+			../../../../magick/magick convert "${ICON_FILE_NAME}" -resize 256x256 "GameIcon.icns"
+			cp -a "GameIcon.icns" "OS X AppIcon.icns"
+			cd ../..
+		else
+			echo -e "${RED}ImageMagick missing. Aborting...${NC}"
+			cd ../..
+			rm -rf macos_temp
+
+			return 0
+		fi
+	fi
+
+	echo -e "Please type in an app identifier [${BLUE}com.company.appname${NC}]"
+	read -p "App identifier: " IDENTIFIER
+
+	echo "Modifying Info.plist..."
+	cd Contents
+
+	replace_text_in_file "<string>org.love2d.love</string>" "<string>${IDENTIFIER}</string>" Info.plist
+	replace_text_in_file "<string>LÖVE</string>" "<string>${GAME_NAME}</string>" Info.plist
+
+	cd ../..
+
+	echo "Compressing..."
+	zip -q -y -r "${PACKAGE_NAME}_macos_x64.zip" "${PACKAGE_NAME}.app" 
+
+	echo -e "${GREEN}Moving package to build folder...${NC}"
+	cp "${PACKAGE_NAME}_macos_x64.zip" ../build
+
+	echo "Cleaning..."
+	cd ..
+	rm -rf macos_temp
+
+	((BUILDS++))
+}
+
+echo "Love Builder needs Wine and ResourceHacker to be able to change icons of .exe files."
 echo "If you know of a better way to go about this, feel free to file an issue at"
 echo -e "${BLUE}[https://github.com/squishyu/love-builder]${NC}"
 
@@ -397,6 +467,8 @@ build_windows "x86"
 build_windows "x64"
 
 build_linux
+
+build_macos
 
 if (( $BUILDS >= $BUILDS_ALL )); then
 	echo -e "${GREEN}Builds completed. [${BUILDS}/${BUILDS_ALL}]${NC}"
