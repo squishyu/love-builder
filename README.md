@@ -1,11 +1,15 @@
 # Love Builder
 ### Love2D packaging script
 
-This script generates zip files containing your packaged game for Windows and Linux.
+This script generates zip files containing your packaged game for Windows, Linux and MacOS.
 Currently the script comes included with Love2D 0.10.2, however you can supply your own Love versions.
 
-For Windows, you can get the binaries from the Love2D website (Link at the bottom).
+#### Supplying your own Love version
+For Windows, you can get the binaries [here](https://github.com/love2d/love/releases)
+
 For Linux, check out the [wiki](https://love2d.org/wiki/Game_Distribution)
+
+For MacOS get your preffered version [here](https://github.com/love2d/love/releases)
 
 ## Usage
 
@@ -48,7 +52,7 @@ My tool does all of that, just make sure you have **_Wine_** installed.
 
 ## TODO
 
-- ~~Add Linux support~~ (Maybe even MacOS)
+- ~~Add Linux support (Maybe even MacOS)~~
 - ~~Allow for different versions of Love2D~~
 
 ## Links
