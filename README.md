@@ -61,7 +61,7 @@ Love2D: [https://love2d.org](https://love2d.org)
 
 AppImageKit: [https://github.com/AppImage/AppImageKit](https://github.com/AppImage/AppImageKit)
 
-Resource Hacher: [http://www.angusj.com/resourcehacker](http://www.angusj.com/resourcehacker)
+Resource Hacker: [http://www.angusj.com/resourcehacker](http://www.angusj.com/resourcehacker)
 
 ImageMagick: [https://imagemagick.org/index.php](https://imagemagick.org/index.php)
 
