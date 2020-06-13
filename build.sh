@@ -405,28 +405,26 @@ build_macos() {
 	echo -e "${PURPLE}Building $GAME_NAME for MacOS...${NC}"
 
 	echo "Creating temporary folder..."
-	mkdir macos_temp
+	mkdir -p macos_temp
 	cp -a love.app "macos_temp/${PACKAGE_NAME}.app"
 	cd macos_temp
 
 	echo "Adding .love file..."
 	cp "${LOVE_PREFIX}$FILE_PATH" "${PACKAGE_NAME}.app/Contents/Resources"
 
-	echo "Adding icon..."
-	cp "${ICON_PREFIX}${ICON_PATH}" "${PACKAGE_NAME}.app/Contents/Resources"
-
-	cd "${PACKAGE_NAME}.app"
-
 	if [[ "$ICON_FILE_SUPPLIED" == 1 ]]; then
+		echo "Adding icon..."
+		cp "${ICON_PREFIX}${ICON_PATH}" "${PACKAGE_NAME}.app/Contents/Resources"
+
 		if [[ "$IM_FOUND" == 1 ]]; then
 			echo "Converting icon from .png to .icns..."
-			cd Contents/Resources
+			cd "${PACKAGE_NAME}.app/Contents/Resources"
 			../../../../magick/magick convert "${ICON_FILE_NAME}" -resize 256x256 "GameIcon.icns"
 			cp -a "GameIcon.icns" "OS X AppIcon.icns"
-			cd ../..
+			cd ../../..
 		else
 			echo -e "${RED}ImageMagick missing. Aborting...${NC}"
-			cd ../..
+			cd ..
 			rm -rf macos_temp
 
 			return 0
@@ -437,7 +435,7 @@ build_macos() {
 	read -p "App identifier: " IDENTIFIER
 
 	echo "Modifying Info.plist..."
-	cd Contents
+	cd "${PACKAGE_NAME}.app/Contents"
 
 	replace_text_in_file "<string>org.love2d.love</string>" "<string>${IDENTIFIER}</string>" Info.plist
 	replace_text_in_file "<string>LÖVE</string>" "<string>${GAME_NAME}</string>" Info.plist
