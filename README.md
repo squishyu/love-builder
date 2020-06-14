@@ -4,13 +4,6 @@
 This script generates zip files containing your packaged game for Windows, Linux and MacOS.
 Currently the script comes included with Love2D 0.10.2, however you can supply your own Love versions.
 
-#### Supplying your own Love version
-For Windows, you can get the binaries [here](https://github.com/love2d/love/releases)
-
-For Linux, check out the [wiki](https://love2d.org/wiki/Game_Distribution)
-
-For MacOS get your preffered version [here](https://github.com/love2d/love/releases)
-
 ## Usage
 
 #### Make sure to make script executable
@@ -31,7 +24,7 @@ or
 
 #### Enjoy
 
-Archives get put into a build folder.
+Archives get put into a `build` folder.
 
 ## Notes
 
@@ -49,6 +42,23 @@ repository.
 Sure was a pain. To change icons of a *.exe* a Windows program called *Resource Hacker* is needed, which requires *Wine* to run on Linux. Before the icon can be changed, *ImageMagick* needs to convert the *.png* you supplied to a *.ico* file.
 
 My tool does all of that, just make sure you have **_Wine_** installed.
+
+#### Supplying your own Love version
+
+For Windows, you can get the binaries [here](https://github.com/love2d/love/releases)
+
+For Linux, check out the [wiki](https://love2d.org/wiki/Game_Distribution)
+
+For MacOS get your preffered version [here](https://github.com/love2d/love/releases)
+
+Once you've got your binaries, you can supply them to the script using environment variables.
+```
+export LOVE_WIN32_PATH="<path_to_love_windows_32_bit>"
+export LOVE_WIN64_PATH="<path_to_love_windows_64_bit>"
+export LOVE_APPDIR_PATH="<path_to_love_linux_appdir>"
+export LOVE_APP_PATH="<path_to_love_app_macos>"
+```
+Or by replacing the ones in the `love-builder` folder (Not recommended if you use `git pull` for updates of the repo)
 
 ## TODO
 
