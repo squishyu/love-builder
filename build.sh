@@ -5,6 +5,28 @@ if [[ $# -lt 1 ]]; then
 	exit 0
 fi
 
+# Script's directory
+
+LOVE_BUILDER_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# Binaries
+
+if [ -z $LOVE_WIN32_PATH ]; then
+	LOVE_WIN32_PATH="love-win32"
+fi
+
+if [ -z $LOVE_WIN64_PATH ]; then
+	LOVE_WIN64_PATH="love-win64"
+fi
+
+if [ -z $LOVE_APPDIR_PATH ]; then
+	LOVE_APPDIR_PATH="AppDir"
+fi
+
+if [ -z $LOVE_APP_PATH ]; then
+	LOVE_APP_PATH="love.app"
+fi
+
 FILE_PATH="$1"
 ICON_PATH="$2"
 
@@ -13,31 +35,31 @@ if ! test -f "$FILE_PATH"; then
 	exit 1
 fi
 
-if ! test -d "./love-win32"; then
-	echo "Missing love folder at [./love-win32]"
+if ! test -d "$LOVE_WIN32_PATH"; then
+	echo "Missing love folder at [${LOVE_WIN32_PATH}]"
 	exit 1
 fi
 
-if ! test -d "./love-win64"; then
-	echo "Missing love folder at [./love-win64]"
+if ! test -d "$LOVE_WIN64_PATH"; then
+	echo "Missing love folder at [${LOVE_WIN64_PATH}]"
 	exit 1
 fi
 
-if ! test -d "./AppDir"; then
-	echo "Missing AppDir structure"
+if ! test -d "$LOVE_APPDIR_PATH"; then
+	echo "Missing AppDir structure at [${LOVE_APPDIR_PATH}]"
 	exit 1
 fi
 
-if ! test -d "./love.app"; then
-	echo "Missing love folder at [./love.app]"
+if ! test -d "$LOVE_APP_PATH"; then
+	echo "Missing love folder at [${LOVE_APP_PATH}]"
 	exit 1
 fi
 
 # Icon file
 
-ICON_FILE_NAME=$(basename "$ICON_PATH")
-ICON_FILE_EXTENSION=${ICON_FILE_NAME##*.}
-ICON_FILE_NO_EXTENSION=$(basename -s ".$ICON_FILE_EXTENSION" "$ICON_PATH")
+ICON_FILE_NAME=$(basename "$ICON_PATH") # Removes path
+ICON_FILE_EXTENSION=${ICON_FILE_NAME##*.} # Only keeps file extension
+ICON_FILE_NO_EXTENSION=$(basename -s ".$ICON_FILE_EXTENSION" "$ICON_PATH") # Only keeps name without extension
 
 if test -f "$ICON_PATH"; then
 	if [[ "$ICON_FILE_EXTENSION" != "png" ]]; then
@@ -58,11 +80,11 @@ fi
 
 # Love file
 
-LOVE_FILE_NAME=$(basename "$FILE_PATH")
-LOVE_FILE_EXTENSION=${LOVE_FILE_NAME##*.}
-GAME_NAME=$(basename -s ".$LOVE_FILE_EXTENSION" "$FILE_PATH")
+LOVE_FILE_NAME=$(basename "$FILE_PATH") # Removes path
+LOVE_FILE_EXTENSION=${LOVE_FILE_NAME##*.} # Only keeps extension
+GAME_NAME=$(basename -s ".$LOVE_FILE_EXTENSION" "$FILE_PATH") # Only keeps name without extension
 LOWERCASE=$(echo "$GAME_NAME" | tr '[:upper:]' '[:lower:]')
-PACKAGE_NAME=${LOWERCASE// /_}
+PACKAGE_NAME=${LOWERCASE// /_} # Converts GAME_NAME into lowercase with underscores instead of spaces
 
 if [ "$LOVE_FILE_EXTENSION" != "love" ]; then
 	echo "[${FILE_PATH}] - Supplied file isn't a .love file."
@@ -96,6 +118,8 @@ download() {
 	FILE_NAME=$(basename "$LINK")
 
 	echo "Attempting to download $FILE_NAME..."
+
+	# Internet check
 
 	if command -v wget > /dev/null; then
 		wget -q --spider http://google.com &> /dev/null
@@ -150,6 +174,8 @@ wine_check() {
 	echo -e "Checking for ${RED}Wine${NC}..."
 
 	if command -v wine > /dev/null; then
+		# Resource Hacker needs Wine to run as 32 bit
+
 		if [[ "$WINEARCH" != "win32" ]]; then
 			echo -e "${ORANGE}If you receive errors while changing .exe icons, please remove ${NC}~/.wine ${ORANGE}folder and try again."
 		fi
@@ -268,12 +294,18 @@ build_windows() {
 
 	if [[ "$ARCH" == "x86" ]]; then
 		ARCH_BITS=32
+		WIN_PATH="$LOVE_WIN32_PATH"
 	else
 		ARCH_BITS=64
+		WIN_PATH="$LOVE_WIN64_PATH"
 	fi
 
 	echo -e "${PURPLE}Building $GAME_NAME for win${ARCH_BITS}...${NC}"
-	cd "love-win${ARCH_BITS}"
+
+	echo "Creating temporary folder..."
+	mkdir -p win_temp
+	cp -r "${WIN_PATH}/." win_temp
+	cd win_temp
 
 	echo "Creating executable..."	
 	cat love.exe "${LOVE_PREFIX}$FILE_PATH" > "${GAME_NAME}.exe"
@@ -284,9 +316,11 @@ build_windows() {
 	zip -q "build.zip" * -x "love.exe"
 	echo -e "${GREEN}Moving package to build folder...${NC}"
 	mv "build.zip" "../build/${PACKAGE_NAME}_win_${ARCH}.zip"
+
 	echo "Cleaning..."
-	rm "${GAME_NAME}.exe"
-	cd ..
+	cd "$LOVE_BUILDER_PATH"
+	rm -rf win_temp
+
 	((BUILDS++))
 }
 
@@ -294,7 +328,15 @@ build_linux() {
 	((BUILDS_ALL++))
 
 	echo -e "${PURPLE}Building $GAME_NAME for Linux (AppImage)...${NC}"
-	cd AppDir
+
+	echo "Creating temporary folder..."
+	mkdir -p linux_temp
+	cp -r "${LOVE_APPDIR_PATH}/." linux_temp
+	cd linux_temp
+
+	echo "Adding run_game script..."
+	cp ../run_game usr/bin
+	chmod +x usr/bin/run_game
 
 	echo "Adding icon..."
 	if [[ "$ICON_FILE_SUPPLIED" == 1 ]]; then
@@ -336,6 +378,7 @@ build_linux() {
 			add_apprun
 		else
 			echo -e "${RED}Missing AppRun.${NC}"
+			return 0
 		fi
 	else
 		add_apprun
@@ -375,6 +418,15 @@ build_linux() {
 		appimagetool . &> /dev/null
 	fi
 
+	# Check if appimagetool failed
+
+	if [[ $? == 1 ]]; then
+		echo -e "${RED}Appimagetool failed. Aborting...${NC}"
+		cd "$LOVE_BUILDER_PATH"
+		rm -rf linux_temp
+		return 0
+	fi
+
 	if test -f *.AppImage; then
 		echo -e "${GREEN}Moving package to build folder...${NC}"
 		
@@ -392,11 +444,8 @@ build_linux() {
 	fi
 
 	echo "Cleaning..."
-	rm -f !("usr")
-	rm -f ".DirIcon"
-	rm -f usr/bin/*.love
-	rm -f usr/share/icons/hicolor/256x256/*
-	cd ..
+	cd "$LOVE_BUILDER_PATH"
+	rm -rf linux_temp
 }
 
 build_macos() {
@@ -406,7 +455,8 @@ build_macos() {
 
 	echo "Creating temporary folder..."
 	mkdir -p macos_temp
-	cp -a love.app "macos_temp/${PACKAGE_NAME}.app"
+	mkdir -p "macos_temp/${PACKAGE_NAME}.app"
+	cp -r "${LOVE_APP_PATH}/." "macos_temp/${PACKAGE_NAME}.app"
 	cd macos_temp
 
 	echo "Adding .love file..."
@@ -449,11 +499,13 @@ build_macos() {
 	cp "${PACKAGE_NAME}_macos_x64.zip" ../build
 
 	echo "Cleaning..."
-	cd ..
+	cd "$LOVE_BUILDER_PATH"
 	rm -rf macos_temp
 
 	((BUILDS++))
 }
+
+# Actual building
 
 echo "Love Builder needs Wine and ResourceHacker to be able to change icons of .exe files."
 echo "If you know of a better way to go about this, feel free to file an issue at"
@@ -472,6 +524,8 @@ build_windows "x64"
 build_linux
 
 build_macos
+
+# So, how did it go?
 
 if (( $BUILDS >= $BUILDS_ALL )); then
 	echo -e "${GREEN}Builds completed. [${BUILDS}/${BUILDS_ALL}]${NC}"
